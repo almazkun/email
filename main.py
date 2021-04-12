@@ -8,6 +8,18 @@ logger = logging.getLogger(__name__)
 
 
 class ReceivedEmails:
+    """Connector to the IMAP server
+
+    Raises:
+        self.imap.error: Base IMAP error
+        e: Base IMAP Error
+
+    Returns:
+        list: ids of all emails
+
+    Yields:
+        email: email.message
+    """
     LOGIN_ATTEMPTS_LIMIT = 3
 
     def __init__(self, username: str, password: str, imap_host: str) -> None:
@@ -45,13 +57,12 @@ class ReceivedEmails:
         self._login()
         return self.imap.select("Inbox", readonly=True)
 
-    def all_inbox(self):
+    def all_inbox(self) -> list:
         self._inbox()
         inbox = self.imap.search(None, "ALL")
         return inbox[1][0].decode('utf-8').split(" ")
 
-    def get_email(self, id):
-
+    def get_email(self, id: str) -> email.message:
         try:
             r, d = self.imap.fetch(id, "(RFC822)")
         except:
@@ -60,6 +71,6 @@ class ReceivedEmails:
 
         return email.message_from_bytes(d[0][1])
 
-    def all_emails(self):
+    def all_emails(self) -> email.message:
         for id in self.all_inbox():
             yield self.get_email(id)
